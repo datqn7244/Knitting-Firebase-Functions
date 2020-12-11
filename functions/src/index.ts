@@ -3,10 +3,11 @@ import * as express from "express";
 import * as cors from "cors";
 import * as project from "./handlers/projects";
 import * as part from "./handlers/parts";
+import { validateFirebaseIdToken } from "./utils/fbauth";
 
 const app = express();
 app.use(cors({ origin: true }));
-
+app.use(validateFirebaseIdToken);
 // Routes
 // Project Related route
 // Create

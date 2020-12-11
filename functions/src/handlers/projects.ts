@@ -18,11 +18,11 @@ const createProject = async (
   res: express.Response
 ): Promise<void> => {
   try {
-    if (!req.body.user || !req.body.name) {
+    if (!req.body.name) {
       res.status(400).json({ error: "Empty field detected" });
     } else {
       const newProject: Project = {
-        user: req.body.user,
+        user: (<any>req).user.email,
         name: req.body.name,
         description: req.body.description,
         yarnName: req.body.yarnName,
@@ -48,7 +48,7 @@ const getAllProjects = async (
   try {
     const projects = await db
       .collection("projects")
-      .orderBy("createdAt", "desc")
+      .where("user", "==", (<any>req).user.email)
       .get();
     const projectsList: Object[] = [];
     projects.forEach((project) => {
@@ -73,12 +73,16 @@ const getOneProject = async (
       .collection(`/projects`)
       .doc(req.params.projectId)
       .get();
-    if (project.data()) {
+    if (project.exists) {
       const resProject = {
         projectId: project.id,
         ...project.data(),
       };
-      res.json(resProject);
+      if ((<any>resProject).user === (<any>req).user.email) {
+        res.json(resProject);
+      } else {
+        res.status(404).json({ error: "Project's not found" });
+      }
     } else {
       res.status(404).json({ error: "Project's not found" });
     }
@@ -97,16 +101,24 @@ const updateProject = async (
       .collection(`/projects`)
       .doc(req.params.projectId)
       .get();
-    if (project.data()) {
+    if (project.exists) {
+      const oldProject = {
+        projectId: project.id,
+        ...project.data(),
+      };
       const newProject = {
         ...req.body,
         updatedAt: new Date().toISOString(),
       };
-      await db
-        .collection("/projects")
-        .doc(req.params.projectId)
-        .set(newProject, { merge: true });
-      res.json({ message: "Project's updated successfully" });
+      if ((<any>oldProject).user === (<any>req).user.email) {
+        await db
+          .collection("/projects")
+          .doc(req.params.projectId)
+          .set(newProject, { merge: true });
+        res.json({ message: "Project's updated successfully" });
+      } else {
+        res.status(404).json({ error: "Project's not found" });
+      }
     } else {
       res.status(404).json({ error: "Project's not found" });
     }
@@ -125,9 +137,17 @@ const deleteProject = async (
       .collection(`/projects`)
       .doc(req.params.projectId)
       .get();
-    if (project.data()) {
-      await db.collection("projects").doc(req.params.projectId).delete();
-      res.status(204);
+    if (project.exists) {
+      const oldProject = {
+        projectId: project.id,
+        ...project.data(),
+      };
+      if ((<any>oldProject).user === (<any>req).user.email) {
+        await db.collection("projects").doc(req.params.projectId).delete();
+        res.status(204).send("Part's deleted successfully");
+      } else {
+        res.status(404).json({ error: "Project's not found" });
+      }
     } else {
       res.status(404).json({ message: "Project's not found" });
     }
