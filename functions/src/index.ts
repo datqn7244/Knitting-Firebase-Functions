@@ -7,6 +7,7 @@ import { validateFirebaseIdToken } from "./utils/fbauth";
 
 const app = express();
 app.use(cors({ origin: true }));
+// Authentication is required for all routes
 app.use(validateFirebaseIdToken);
 // Routes
 // Project Related route

@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import * as express from "express";
-
+// Authentication method from Firebase example. Check Bearer header and JWT
 const validateFirebaseIdToken = async (
   req: express.Request,
   res: express.Response,

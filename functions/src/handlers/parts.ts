@@ -149,7 +149,7 @@ const updatePart = async (
           .collection("/parts")
           .doc(req.params.partId)
           .set(newPart, { merge: true });
-        res.json({ message: "Part's updated successfully" });
+        res.status(204).send();
       } else {
         res.status(404).json({ error: "Part's not found" });
       }
@@ -174,7 +174,7 @@ const deletePart = async (
       };
       if ((<any>oldPart).user === (<any>req).user.email) {
         await db.collection("parts").doc(req.params.partId).delete();
-        res.status(204).send("Part's deleted successfully");
+        res.status(200).send();
       } else {
         res.status(404).json({ error: "Part's not found" });
       }

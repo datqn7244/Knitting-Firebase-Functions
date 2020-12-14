@@ -12,7 +12,6 @@ interface Project {
   createdAt: string;
   updatedAt?: string;
 }
-// TODO: Authentication
 const createProject = async (
   req: express.Request,
   res: express.Response
@@ -115,7 +114,7 @@ const updateProject = async (
           .collection("/projects")
           .doc(req.params.projectId)
           .set(newProject, { merge: true });
-        res.json({ message: "Project's updated successfully" });
+        res.status(204).send();
       } else {
         res.status(404).json({ error: "Project's not found" });
       }
@@ -144,7 +143,7 @@ const deleteProject = async (
       };
       if ((<any>oldProject).user === (<any>req).user.email) {
         await db.collection("projects").doc(req.params.projectId).delete();
-        res.status(204).send("Part's deleted successfully");
+        res.status(200).send();
       } else {
         res.status(404).json({ error: "Project's not found" });
       }
